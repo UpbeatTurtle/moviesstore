@@ -1,3 +1,5 @@
+from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models import Sum
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404, redirect
 from movies.models import Movie
@@ -66,4 +68,17 @@ def orders(request):
     template_data['title'] = 'Orders'
     template_data['orders'] = request.user.order_set.all()
     return render(request, 'accounts/orders.html',
+        {'template_data': template_data})
+
+@staff_member_required
+def top_purchaser(request):
+    ranked = (User.objects
+        .annotate(movies_purchased=Sum('order__item__quantity'))
+        .filter(movies_purchased__gt=0)
+        .order_by('-movies_purchased', 'username'))
+    template_data = {}
+    template_data['title'] = 'Top Purchaser'
+    template_data['top_user'] = ranked.first()
+    template_data['ranked_users'] = ranked
+    return render(request, 'cart/top_purchaser.html',
         {'template_data': template_data})
