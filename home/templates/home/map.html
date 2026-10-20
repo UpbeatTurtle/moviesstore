@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<div class="p-3">
+  <div class="container">
+    <h2>Trending by state</h2>
+    <hr />
+    <div id="map" style="height: 600px;"></div>
+  </div>
+</div>
+
+<script>
+  const map = L.map('map').setView([37.8, -96], 4);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 8,
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
+
+  const palette = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#a65628'];
+  const movieColors = {};
+  let nextColor = 0;
+
+  function colorFor(movie) {
+    if (!movieColors[movie]) {
+      movieColors[movie] = palette[nextColor % palette.length];
+      nextColor += 1;
+    }
+    return movieColors[movie];
+  }
+
+  fetch('{% url "home.map_data" %}')
+    .then(function (response) { return response.json(); })
+    .then(function (data) {
+      const sales = {};
+      data.regions.forEach(function (region) {
+        sales[region.name] = region;
+      });
+      return fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
+        .then(function (response) { return response.json(); })
+        .then(function (states) {
+          L.geoJSON(states, {
+            style: function (feature) {
+              const region = sales[feature.properties.name];
+              return {
+                color: '#666666',
+                weight: 1,
+                fillColor: region ? colorFor(region.movie) : '#cccccc',
+                fillOpacity: 0.7
+              };
+            },
+            onEachFeature: function (feature, layer) {
+              const region = sales[feature.properties.name];
+              if (!region) {
+                layer.bindPopup(feature.properties.name + ': no purchases yet');
+                return;
+              }
+              layer.bindPopup(
+                '<b>' + region.name + '</b><br>' +
+                region.movie + '<br>' +
+                region.quantity + ' sold<br>' +
+                '<a href="' + region.url + '">View movie</a>'
+              );
+            }
+          }).addTo(map);
+        });
+    });
+</script>
+{% endblock content %}

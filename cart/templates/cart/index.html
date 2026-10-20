@@ -39,9 +39,25 @@
         <a class="btn btn-outline-secondary mb-2"><b>Total
           to pay:</b> ${{ template_data.cart_total }}</a>
           {% if template_data.movies_in_cart|length > 0 %}
-          <a href="{% url 'cart.purchase' %}"
-          class="btn bg-dark text-white mb-2">Purchase
-        </a>
+          <form method="post" action="{% url 'cart.purchase' %}" class="d-inline">
+            {% csrf_token %}
+            <label class="me-2">
+              State
+              <select name="region" class="form-select d-inline-block w-auto mb-2" required>
+                <option value="">Select a state</option>
+                <option value="AL">Alabama</option>
+                <option value="AK">Alaska</option>
+                <option value="AZ">Arizona</option>
+                <option value="CA">California</option>
+                <option value="FL">Florida</option>
+                <option value="GA">Georgia</option>
+                <option value="NY">New York</option>
+                <option value="TX">Texas</option>
+                <!-- same pattern for the other states -->
+              </select>
+            </label>
+            <button type="submit" class="btn bg-dark text-white mb-2">Purchase</button>
+          </form>
         <a href="{% url 'cart.clear' %}">
           <button class="btn btn-danger mb-2">
             Remove all movies from Cart
