@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Movie, Review
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 
 
 
@@ -73,4 +74,31 @@ def report_review(request, id, review_id):
     template_data = {}
     return render(request, 'movies/report_review.html',
                 {'template_data': template_data})
+
+@staff_member_required
+def top_commenter(request):
+    #I need the reviews 
+    #I need to count user with the most reviews
+    #display that user
+    reviews = Review.objects.all()
+    counts = {}
+    for review in reviews:
+        if review.user.username in counts:
+            counts[review.user.username] += 1
+        else:
+            counts[review.user.username] = 1
+    top_reviewer = ""
+    top_count = 0
+    for name, count in counts.items():
+        if count > top_count:
+            top_count = count
+            top_reviewer = name
+    template_data = {}
+    template_data['title'] = "Top Reviewer"
+    template_data['top_reviewer'] = top_reviewer
+    template_data['top_count'] = top_count
+    return render(request, 'movies/top_commenter.html', 
+                  {'template_data': template_data})
+
+
 
