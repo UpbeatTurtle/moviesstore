@@ -6,4 +6,5 @@ urlpatterns = [
     path('clear/', views.clear, name='cart.clear'),
     path('purchase/', views.purchase, name='cart.purchase'),
     path('orders/', views.orders, name='accounts.orders'),
+    path('admin/top-purchaser/', views.top_purchaser, name='cart.top_purchaser'),
 ]
