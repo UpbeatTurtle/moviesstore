@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Movie, Review
 from django.contrib.auth.decorators import login_required
-from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.admin.views.decorators import staff_member_required, user_passes_test
+from django.db.models import Count, Sum
 
 
 
@@ -99,6 +100,36 @@ def top_commenter(request):
     template_data['top_count'] = top_count
     return render(request, 'movies/top_commenter.html', 
                   {'template_data': template_data})
+
+@user_passes_test(lambda user: user.is_staff)
+def admin_stats(request):
+    top_selling_movie = (
+        Movie.objects
+        .annotate(total_sold=Sum('item__quantity'))
+        .filter(total_sold__gt=0)
+        .order_by('-total_sold', 'name', 'id')
+        .first()
+    )
+
+    top_reviewed_movie = (
+        Movie.objects
+        .annotate(review_count=Count('review'))
+        .filter(review_count__gt=0)
+        .order_by('-review_count', 'name', 'id')
+        .first()
+    )
+
+    template_data = {
+        'title': 'Movie Statistics',
+        'top_selling_movie': top_selling_movie,
+        'top_reviewed_movie': top_reviewed_movie,
+    }
+
+    return render(
+        request,
+        'movies/admin_stats.html',
+        {'template_data': template_data},
+    )
 
 
 
