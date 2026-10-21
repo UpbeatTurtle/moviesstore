@@ -1,5 +1,7 @@
+from django.db import models
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Movie, Review
+from django.db.models import Avg
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required, user_passes_test
 from django.db.models import Count, Sum
@@ -21,19 +23,23 @@ def index(request):
 def show(request, id):
     movie = Movie.objects.get(id=id)
     reviews = Review.objects.filter(movie=movie)
+    avg_rating = reviews.aggregate(models.Avg('rating'))['rating__avg']
     template_data = {}
     template_data['title'] = movie.name
     template_data['movie'] = movie
     template_data['reviews'] = reviews
+    template_data['avg_rating'] = avg_rating
+    template_data['rating_count'] = reviews.count()
     return render(request, 'movies/show.html',
                   {'template_data': template_data})
 
 @login_required
 def create_review(request, id):
-    if request.method == 'POST' and request.POST['comment'] != '':
+    if request.method == 'POST' and request.POST.get('rating'):
         movie = Movie.objects.get(id=id)
         review = Review()
         review.comment = request.POST['comment']
+        review.rating = int(request.POST['rating'])
         review.movie = movie
         review.user = request.user
         review.reports = 0
@@ -53,9 +59,10 @@ def edit_review(request, id, review_id):
         template_data['review'] = review
         return render(request, 'movies/edit_review.html',
             {'template_data': template_data})
-    elif request.method == 'POST' and request.POST['comment'] != '':
+    elif request.method == 'POST' and request.POST.get('rating'):
         review = Review.objects.get(id=review_id)
         review.comment = request.POST['comment']
+        review.rating = int(request.POST['rating'])
         review.save()
         return redirect('movies.show', id=id)
     else:
