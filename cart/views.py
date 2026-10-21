@@ -44,6 +44,7 @@ def purchase(request):
     order = Order()
     order.user = request.user
     order.total = cart_total
+    order.region = request.POST.get('region', '')
     order.save()
     for movie in movies_in_cart:
         item = Item()
@@ -56,7 +57,6 @@ def purchase(request):
     template_data = {}
     template_data['title'] = 'Purchase confirmation'
     template_data['order_id'] = order.id
-    order.region = request.POST.get('region', '')
     return render(request, 'cart/purchase.html',
         {'template_data': template_data})
 
