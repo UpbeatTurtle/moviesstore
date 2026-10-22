@@ -9,6 +9,7 @@
 <hr />
 <p><b>Description:</b> {{template_data.movie.description }}</p>
 <p><b>Price:</b> ${{template_data.movie.price }}</p>
+<p><b>Rating:</b> {{ template_data.avg_rating|default:"No ratings yet" }} ★ ({{ template_data.rating_count }} reviews)</p>
 
 <p class="card-text">
           <form method="post" action="{% url 'cart.add' id=template_data.movie.id %}">
@@ -41,6 +42,7 @@
             </h5>
             <h6 class="card-subtitle mb-2 text-muted">
               {{ review.date }}
+              <span class="badge bg-primary">{{ review.rating }} ★</span>
             </h6>
             <p class="card-text">{{ review.comment }}</p>
 
@@ -74,8 +76,21 @@
                     {% csrf_token %}
                     <p>
                       <label for="comment">Comment:</label>
+                      <p>
+                      <label for="rating">Rating:</label>
+                      <select name="rating" required class="form-control" id="rating">
+                        <option value="">Select a rating</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                      </select>
+                    </p>
                       <textarea name="comment" required class="form-control" id="comment"></textarea>
                     </p>
+
+
                     <div class="text-center">
                       <button type="submit"
                         class="btn bg-dark text-white">
